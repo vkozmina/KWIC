@@ -1,0 +1,88 @@
+﻿<script src="~/Scripts/jquery-3.1.1.js"></script>
+
+@{
+    ViewBag.Title = "KWIC_Part1";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>KWIC_Part1</h2>
+
+<label for="text_input">String to be KWIC-ified: </label>
+<div class="form-group form-inline" >
+    <textarea rows="10" style="min-width:90%" type="text" class="form-control input-lg" id="text_input"></textarea>
+    <button type="button" style="align-self:center" class="btn-lg btn-primary" id="click_button">KWIC</button> 
+
+</div>
+<div class="panel-default panel" id="text_output">
+    <div class="panel-heading" >Circular Shifts</div>
+    <div class="panel-body" id="inner_body_text"></div>
+</div>
+<div class="panel-default panel" id="text_output2">
+    <div class="panel-heading">Now for Alphabetization</div>
+    <div class="panel-body" id="inner_body_text2"></div>
+</div>
+<div class="panel-default panel" id="text_output3">
+    <div class="panel-heading">Full Alphabetization</div>
+    <div class="panel-body" id="inner_body_text3"></div>
+</div>
+
+<script >
+    $(function () {
+        $('#click_button').click(function (e) {
+            $.ajax({
+                url: "@Url.Action("MyKWICAction")", 
+                type: "GET",
+                dataType: "text",
+                data: { sentence_Input: document.getElementById("text_input").value },
+                success: function(response) {
+                    $('#inner_body_text').text(response);
+
+                    console.log("Success " + response);
+
+                }, error: function (response) {
+                    $('#inner_body_text').text("error: unable to talk to the web server. Try again later.");
+                    console.log("Failure " + response);
+                }
+            })
+            $.ajax({
+                url: "@Url.Action("MyKWICAction2")", 
+                type: "GET",
+            dataType: "text",
+            data: { sentence_Input: document.getElementById("text_input").value },
+            success: function(response) {
+                $('#inner_body_text2').text(response);
+
+                console.log("Success " + response);
+
+            }, error: function (response) {
+                $('#inner_body_text2').text("error: unable to talk to the web server. Try again later.");
+                console.log("Failure " + response);
+            }
+            })
+            $.ajax({
+                url: "@Url.Action("MyKWICAction3")", 
+                type: "GET",
+            dataType: "text",
+            data: { sentence_Input: document.getElementById("text_input").value },
+            success: function(response) {
+                $('#inner_body_text3').text(response);
+
+                console.log("Success " + response);
+
+            }, error: function (response) {
+                $('#inner_body_text3').text("error: unable to talk to the web server. Try again later.");
+                console.log("Failure " + response);
+            }
+        })
+        });
+    });
+    $(function () {
+        $('#text_input').keypress(function (e) {
+            if (e.which == 13) {
+                document.getElementById("click_button").click();
+            }
+        });
+
+    });
+
+</script>
