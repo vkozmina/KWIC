@@ -1,0 +1,125 @@
+﻿<script src="~/Scripts/jquery-3.1.1.js"></script>
+<script src="~/Scripts/awesomplete.min.js" async></script>
+
+@{
+    ViewBag.Title = "Cyberminer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Cyberminer</h2>
+<label for="text_input">Enter in your search request: </label>
+    <div class="form-group form-inline">
+        <textarea rows="1" type="text" class="form-control input-lg" id="text_input1"></textarea>
+        <button type="button" style="align-self:center" class="btn-lg btn-primary" id="click_button">Search</button>
+
+    </div>
+
+    <div class="row">
+        <div class="col-xs-7">
+            <div class="panel-default panel" id="text_output">
+                <div class="panel-heading">Matching Results</div>
+                <div class="panel-body" id="inner_body_text"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            // A $( document ).ready() block.
+            $(document).ready(function () {
+
+                $.ajax({
+                    url: "@Url.Action("autofill")",
+                    type: "GET",
+                    dataType: "text",
+                    data: {  },
+                    success: function (response) {
+                        //    console.log("Success " + response);
+                        
+                        var listofdesc = response.split(';');
+                        console.log("sucessfully pulled all descriptions from database.");
+                     /*   for (var i = 0; i < listofdesc.length; i++){
+                            console.log(listofdesc[i]);
+                        }*/
+                        var input = document.getElementById("text_input1");
+                        new Awesomplete(input, {
+                            filter: function (text, input) {
+                                return text.indexOf(input) === 0;
+                            },
+                            list: listofdesc, minChars: 1, autoFirst: false
+                        });
+                    },
+                    error: function (response) {
+                        $('#inner_body_text').text("error: unable to talk to the web server. Try again later.");
+                        console.log("Failure " + response);
+                    }
+            })
+                console.log("ready!");
+                
+            });
+
+
+            $('#click_button').click(function (e) {
+
+                //$('#inner_body_text').replaceWith("SEARCHING");
+                $.ajax({
+                    url: "@Url.Action("Search")",
+                    type: "GET",
+                    dataType: "text",
+                    data: { sentence_Input: document.getElementById("text_input1").value },
+                    success: function (response) {
+                        var newResponse = '';
+                        var listOfURLs = response.split("\n");
+
+                        if (listOfURLs.length ==1)
+                        {
+                            newResponse = "Sorry, your query has not returned any results :(";
+                        }
+                        for (var i = 0; i < listOfURLs.length-1; i++) {
+
+                            var insideTheLine = listOfURLs[i].split(";");
+                            var count = insideTheLine[0];
+                            var description = insideTheLine[1];
+                            var url = insideTheLine[2];
+                            var httpURL = '';
+                            if (!/^https?:\/\//i.test(url)) {
+                                httpURL = 'http://' + url;
+                            } else {
+                                httpURL = url;
+                            }
+                            newResponse +=
+                            '<div class="panel panel-info">' +
+                                 '<div class="panel-title pull-right">' + count + '</div>' +
+                                '<div class="panel-heading">' + '<a href="' + httpURL + '"target="_blank">' + url + '</a></div>' +
+                                    '<div class="panel-body">'+
+                                      description +
+                                     '</div></div>'+
+                            '</div>';
+                           // listOfURLs[i];
+                        }
+                     //   $('#inner_body_text').remove(document.getElementById("#inner_body_text"));
+                        $('#inner_body_text').empty().append(newResponse);
+
+                        console.log("Success " + response);
+
+                    }, error: function (response) {
+                        $('#inner_body_text').text("error: unable to talk to the web server. Try again later.");
+                        console.log("Failure " + response);
+                    }
+                })
+
+            });
+        });
+        $(function () {
+            $('#text_input1').keypress(function (e) {
+                if (e.keyCode == 10 || e.keyCode == 13) {
+                    document.getElementById("click_button").click();
+                    document.getElementById("click_button").focus();
+                    e.preventDefault();
+                }
+            });
+
+        });
+
+
+    </script>

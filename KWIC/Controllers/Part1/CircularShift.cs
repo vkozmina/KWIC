@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Web;
 
@@ -10,6 +10,7 @@ namespace KWIC.Controllers
 
         string line;
         int numWords;
+        ArrayList noiseWords = new ArrayList();
 
         string result;
 
@@ -25,19 +26,27 @@ namespace KWIC.Controllers
 
         public void setChar() //creates shifted lines
         {
-            result += line + "\n";
+            //result += line + "\n";
             if (line.Contains(" "))
             {
-                for (int o = 0; o < numWords-1; o++)
+                for (int o = 0; o < numWords; o++)
                 {
+                    
                     int place = line.IndexOf(" ");
 
                     string temp = line.Substring(0, place + 1).Trim();
-                    System.Diagnostics.Debug.WriteLine(place);
+                    
                     line = line.Substring(place + 1) + " " + temp;
                     line.Trim();
 
-                    result += line + "\n";
+                    string t;
+
+                    NoiseWordEliminator nw = new NoiseWordEliminator();
+                    t = nw.noiseWordEliminator(line);
+                    if (t.Length != 0)
+                    {
+                        result += t + "\n";
+                    }
 
                 }
             }
@@ -55,7 +64,9 @@ namespace KWIC.Controllers
 
         public string getShifted() //returns shifted result
         {
-            return result;
+            return result.TrimEnd();
         }
+
+
     }
 }

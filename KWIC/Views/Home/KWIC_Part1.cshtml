@@ -9,22 +9,26 @@
 
 <label for="text_input">String to be KWIC-ified: </label>
 <div class="form-group form-inline" >
-    <textarea rows="10" style="min-width:90%" type="text" class="form-control input-lg" id="text_input"></textarea>
-    <button type="button" style="align-self:center" class="btn-lg btn-primary" id="click_button">KWIC</button> 
+    <textarea rows="2" style="min-width:65%" type="text" class="form-control input-lg" id="text_input"></textarea>
+    <button type="button" style="align-self:center" class="btn-lg btn-primary" id="click_button">Add</button> 
 
 </div>
-<div class="panel-default panel" id="text_output">
-    <div class="panel-heading" >Circular Shifts</div>
+
+<div class="row">
+    <div class="col-xs-4">
+    <div class="panel-default panel" id="text_output">
+    <div class="panel-heading">Circular Shifts</div>
     <div class="panel-body" id="inner_body_text"></div>
+</div></div>
+    <div class="col-xs-4">
+        <div class="panel-default panel" id="text_output3">
+            <div class="panel-heading">Full Alphabetization</div>
+            <div class="panel-body" id="inner_body_text3"></div>
+        </div>
+    </div>
 </div>
-<div class="panel-default panel" id="text_output2">
-    <div class="panel-heading">Now for Alphabetization</div>
-    <div class="panel-body" id="inner_body_text2"></div>
-</div>
-<div class="panel-default panel" id="text_output3">
-    <div class="panel-heading">Full Alphabetization</div>
-    <div class="panel-body" id="inner_body_text3"></div>
-</div>
+
+
 
 <script >
     $(function () {
@@ -44,21 +48,7 @@
                     console.log("Failure " + response);
                 }
             })
-            $.ajax({
-                url: "@Url.Action("MyKWICAction2")", 
-                type: "GET",
-            dataType: "text",
-            data: { sentence_Input: document.getElementById("text_input").value },
-            success: function(response) {
-                $('#inner_body_text2').text(response);
-
-                console.log("Success " + response);
-
-            }, error: function (response) {
-                $('#inner_body_text2').text("error: unable to talk to the web server. Try again later.");
-                console.log("Failure " + response);
-            }
-            })
+            
             $.ajax({
                 url: "@Url.Action("MyKWICAction3")", 
                 type: "GET",
@@ -66,7 +56,6 @@
             data: { sentence_Input: document.getElementById("text_input").value },
             success: function(response) {
                 $('#inner_body_text3').text(response);
-
                 console.log("Success " + response);
 
             }, error: function (response) {
@@ -77,12 +66,88 @@
         });
     });
     $(function () {
-        $('#text_input').keypress(function (e) {
-            if (e.which == 13) {
-                document.getElementById("click_button").click();
+        var currentRequest = null;
+        var currentRequest2 = null;
+        $('#text_input').keyup(function (e) {
+
+          //  var expression = /[-a-zA-Z0-9@@:%._\+~#=]{2,256}\.[a-z]{2,6}\b( [-a-zA-Z0-9@@:%_\+.~#?&//=]*)/gi;
+           // var regex = new RegExp(expression);
+            //var t = document.getElementById("text_input").value;
+
+            //if (t.match(regex))  {
+              //  document.getElementById("text_input").value = document.getElementById("text_input").value + " ";
+
+                if (document.getElementById("text_input").value.split(" ").length > 3 || (document.getElementById("text_input").value.split(" ").length > 2 && !(document.getElementById("text_input").value.endsWith(" ")))) {
+                    //document.getElementById("click_button").click(); //can't do this because of lag
+                    
+
+                    currentRequest =  $.ajax({
+                        url: "@Url.Action("MyKWICAction")", 
+                        type: "GET",
+                    dataType: "text",
+                    data: { sentence_Input: document.getElementById("text_input").value },
+                    beforeSend : function()    {           
+                        if(currentRequest != null) {
+                            currentRequest.abort();
+                        }
+                    },
+                    success: function(response) {
+                        $('#inner_body_text').text(response);
+
+                        console.log("Success " + response);
+
+                    }, error: function (response) {
+                        $('#inner_body_text').text("error: unable to talk to the web server. Try again later.");
+                        //$('#inner_body_text').html("<img src='/Content/vika loading gif2.gif' />");
+                        console.log("Failure " + response);
+                    }
+                })
+            
+                    currentRequest2 = $.ajax({
+                url: "@Url.Action("MyKWICAction3")", 
+                type: "GET",
+            dataType: "text",
+            data: { sentence_Input: document.getElementById("text_input").value },
+            beforeSend: function () {
+                if (currentRequest2 != null) {
+                    currentRequest2.abort();
+                }
+            },
+            success: function(response) {
+                $('#inner_body_text3').text(response);
+                console.log("Success " + response);
+
+            }, error: function (response) {
+                $('#inner_body_text3').text("error: unable to talk to the web server. Try again later.");
+                //$('#inner_body_text3').html("<img src='/Content/vika loading gif.gif' />");
+                console.log("Failure " + response);
             }
+        })
+                }
         });
 
     });
+    $(function () {
+        $('#text_input').keypress(function (e) {
+            if (e.keyCode == 10 || e.keyCode == 13) {
+                $.ajax({
+                    url: "@Url.Action("submitIntoDatabase")",
+                    type: "GET",
+                    dataType: "text",
+                    data: { sentence_Input: document.getElementById("text_input").value },
+                    success: function (response) {
+                        $('#inner_body_text3').text(response);
+                        document.getElementById('text_input').value = "";
+                        console.log("Success " + response);
+                    }, error: function (response) {
+                        $('#inner_body_text3').text("error: unable to talk to the web server. Try again later.");
+                        console.log("Failure " + response);
+                    }
+                });
+            }
+        });
+    });
+    
+
 
 </script>
